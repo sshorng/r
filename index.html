@@ -208,7 +208,7 @@
     <div class="header">
       <h1><span>⇢</span> 阿墨轉址</h1>
       <div style="display:flex;gap:0.5rem;align-items:center">
-        <button class="btn-small btn-cache" onclick="clearCache()" style="padding:0.5rem 0.8rem;font-size:0.8rem;border:1px solid #2d3a50;border-radius:10px;background:#1e293b;color:#94a3b8;cursor:pointer">清除快取</button>
+        <button class="btn-small btn-cache" onclick="clearCache()" style="padding:0.5rem 0.8rem;font-size:0.8rem;border:1px solid #2d3a50;border-radius:10px;background:#1e293b;color:#94a3b8;cursor:pointer">重新整理</button>
         <a href="https://docs.google.com/spreadsheets/d/1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4/edit" target="_blank" class="btn-sheet">
           開啟 Google Sheets
         </a>
@@ -217,7 +217,7 @@
 
     <div class="card">
       <div class="card-header">
-        <p>在 Google Sheets 中新增短碼，這裡會自動同步顯示</p>
+        <p>在 Google Sheets 中新增短碼，每 5 分鐘自動同步</p>
       </div>
       <div id="loading" class="loading">載入中 ...</div>
       <table id="table" style="display: none;">
@@ -248,7 +248,6 @@
   </div>
 
   <script>
-    var SHEETS_ID = "1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4";
     var BASE_URL = "https://sshorng.github.io/r/";
     var allData = [];
 
@@ -256,30 +255,13 @@
       return "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(url);
     }
 
-    function parseCSV(text) {
-      var lines = text.split("\n");
-      var result = [];
-      for (var i = 1; i < lines.length; i++) {
-        var cols = lines[i].split(",");
-        var code = cols[0] ? cols[0].trim() : "";
-        var url = cols[1] ? cols[1].trim() : "";
-        if (code) {
-          result.push({ code: code, url: url });
-        }
-      }
-      return result;
-    }
-
     async function loadData() {
       try {
-        var timestamp = new Date().getTime();
-        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/export?format=csv&gid=0&_=" + timestamp;
-        var response = await fetch(url);
-        var text = await response.text();
-        allData = parseCSV(text);
+        var response = await fetch("data.json");
+        allData = await response.json();
         renderTable();
       } catch (err) {
-        document.getElementById("loading").textContent = "載入失敗，請確認 Sheets 已設為公開";
+        document.getElementById("loading").textContent = "載入失敗，請確認 data.json 存在";
       }
     }
 
@@ -343,9 +325,8 @@
     }
 
     function clearCache() {
-      localStorage.removeItem("az_mapping");
       loadData();
-      document.getElementById("toast").textContent = "快取已清除";
+      document.getElementById("toast").textContent = "已重新整理";
       showToast();
       setTimeout(function() {
         document.getElementById("toast").textContent = "已複製";
