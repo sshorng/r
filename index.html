@@ -270,9 +270,10 @@
       try {
         var response = await fetch("data.json");
         allData = await response.json();
+        if (allData.length === 0) throw "empty";
         renderTable();
       } catch (err) {
-        document.getElementById("loading").textContent = "載入失敗";
+        refreshFromSheets();
       }
     }
 
