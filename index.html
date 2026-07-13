@@ -13,69 +13,59 @@
       min-height: 100vh;
       padding: 2rem;
     }
-    .container { max-width: 800px; margin: 0 auto; }
-    h1 { text-align: center; margin-bottom: 2rem; color: #38bdf8; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    h1 { color: #38bdf8; }
     .card {
       background: #1e293b;
       border-radius: 12px;
       padding: 1.5rem;
       margin-bottom: 1rem;
     }
-    .input-group {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    input {
-      flex: 1;
-      padding: 0.75rem;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      background: #0f172a;
-      color: #e2e8f0;
-      font-size: 1rem;
-    }
-    input:focus { outline: none; border-color: #38bdf8; }
-    button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      background: #38bdf8;
-      color: #0f172a;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover { background: #7dd3fc; }
-    .btn-secondary {
-      background: #334155;
-      color: #e2e8f0;
-    }
-    .btn-secondary:hover { background: #475569; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    table { width: 100%; border-collapse: collapse; }
     th, td {
       padding: 1rem;
       text-align: left;
       border-bottom: 1px solid #334155;
     }
-    th { color: #38bdf8; }
-    .qr-cell { text-align: center; }
-    .qr-cell img {
-      width: 100px;
-      height: 100px;
-      background: white;
-      padding: 4px;
-      border-radius: 4px;
-    }
+    th { color: #38bdf8; font-size: 0.875rem; }
     .url-cell {
       max-width: 200px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
     .actions { display: flex; gap: 0.5rem; }
+    .btn-small {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn-qr { background: #38bdf8; color: #0f172a; }
+    .btn-copy { background: #334155; color: #e2e8f0; }
+    .btn-copy:hover { background: #475569; }
+    .btn-sheet {
+      background: #22c55e;
+      color: #fff;
+      text-decoration: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .btn-sheet:hover { background: #16a34a; text-decoration: none; }
     .loading { text-align: center; color: #94a3b8; padding: 2rem; }
     .modal {
       display: none;
@@ -103,35 +93,34 @@
     }
     .modal-content p { margin: 0.5rem 0; color: #94a3b8; }
     .short-url {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: #38bdf8;
       word-break: break-all;
+      background: #0f172a;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      margin: 0.5rem 0;
     }
+    .modal-actions { margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>QR Code 轉址管理</h1>
-
-    <div class="card">
-      <div class="input-group">
-        <input type="text" id="shortCode" placeholder="短碼（如 math101）">
-        <input type="url" id="targetUrl" placeholder="目標網址（如 https://...）">
-        <button onclick="showQR()">產生 QR Code</button>
-      </div>
-      <p style="color: #64748b; font-size: 0.875rem;">
-        提示：在 Sheets 裡設定好短碼和目標網址後，這裡會自動讀取並顯示 QR Code
-      </p>
+    <div class="header">
+      <h1>QR Code 轉址管理</h1>
+      <a href="https://docs.google.com/spreadsheets/d/1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4/edit" target="_blank" class="btn-sheet">
+        開啟 Google Sheets
+      </a>
     </div>
 
     <div class="card">
-      <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">已設定的短碼</h2>
       <div id="loading" class="loading">載入中...</div>
       <table id="table" style="display: none;">
         <thead>
           <tr>
             <th>短碼</th>
             <th>目標網址</th>
+            <th>轉址網址</th>
             <th class="qr-cell">QR Code</th>
             <th>操作</th>
           </tr>
@@ -145,11 +134,11 @@
     <div class="modal-content">
       <h2 id="modalTitle"></h2>
       <img id="modalQR" src="">
-      <p>掃描此 QR Code 或複製以下網址：</p>
-      <p class="short-url" id="modalUrl"></p>
-      <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center;">
-        <button onclick="copyUrl()">複製網址</button>
-        <button class="btn-secondary" onclick="closeModal()">關閉</button>
+      <div class="short-url" id="modalUrl"></div>
+      <p>掃描 QR Code 或複製上方網址</p>
+      <div class="modal-actions">
+        <button class="btn-small btn-copy" onclick="copyUrl()">複製網址</button>
+        <button class="btn-small btn-qr" onclick="closeModal()">關閉</button>
       </div>
     </div>
   </div>
@@ -196,11 +185,13 @@
         var qrUrl = getQRUrl(shortUrl);
         var row = document.createElement("tr");
         row.innerHTML =
-          "<td>" + item.code + "</td>" +
-          "<td class='url-cell' title='" + item.url + "'>" + item.url + "</td>" +
-          "<td class='qr-cell'><img src='" + qrUrl + "' alt='QR Code'></td>" +
+          "<td><strong>" + item.code + "</strong></td>" +
+          "<td class='url-cell'><a href='" + item.url + "' target='_blank' title='" + item.url + "'>" + item.url + "</a></td>" +
+          "<td class='url-cell'><a href='" + shortUrl + "' target='_blank'>" + shortUrl + "</a></td>" +
+          "<td style='text-align:center'><img src='" + qrUrl + "' width='80' height='80' style='background:#fff;padding:4px;border-radius:4px'></td>" +
           "<td class='actions'>" +
-          "<button onclick='showQRForCode(\"" + item.code + "\")'>放大</button>" +
+          "<button class='btn-small btn-qr' onclick='showQRForCode(\"" + item.code + "\")'>放大</button>" +
+          "<button class='btn-small btn-copy' onclick='copyShortUrl(\"" + item.code + "\")'>複製</button>" +
           "</td>";
         tbody.appendChild(row);
       });
@@ -209,12 +200,7 @@
       document.getElementById("table").style.display = "table";
     }
 
-    function showQR() {
-      var code = document.getElementById("shortCode").value.trim();
-      var url = document.getElementById("targetUrl").value.trim();
-      if (!code) { alert("請輸入短碼"); return; }
-      if (!url) { alert("請輸入目標網址"); return; }
-
+    function showQRForCode(code) {
       var shortUrl = BASE_URL + code;
       document.getElementById("modalTitle").textContent = code;
       document.getElementById("modalQR").src = getQRUrl(shortUrl);
@@ -222,12 +208,11 @@
       document.getElementById("modal").classList.add("active");
     }
 
-    function showQRForCode(code) {
+    function copyShortUrl(code) {
       var shortUrl = BASE_URL + code;
-      document.getElementById("modalTitle").textContent = code;
-      document.getElementById("modalQR").src = getQRUrl(shortUrl);
-      document.getElementById("modalUrl").textContent = shortUrl;
-      document.getElementById("modal").classList.add("active");
+      navigator.clipboard.writeText(shortUrl).then(function() {
+        alert("已複製：" + shortUrl);
+      });
     }
 
     function copyUrl() {
