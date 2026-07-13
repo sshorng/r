@@ -68,8 +68,8 @@
         var rows = json.table.rows;
 
         for (var i = 0; i < rows.length; i++) {
-          var shortCode = rows[i].c[0] ? rows[i].c[0].v : "";
-          var targetUrl = rows[i].c[1] ? rows[i].c[1].v : "";
+          var shortCode = rows[i].c[0] ? String(rows[i].c[0].v) : "";
+          var targetUrl = rows[i].c[1] ? String(rows[i].c[1].v) : "";
           if (shortCode && shortCode.toLowerCase() === code.toLowerCase()) {
             window.top.location.href = targetUrl;
             return;
