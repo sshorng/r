@@ -109,9 +109,8 @@
       font-weight: 500;
       font-size: 0.85rem;
       border: 1px solid #2d3a50;
-      transition: all 0.15s;
     }
-    .btn-sheet:hover { border-color: #38bdf8; background: rgba(56,189,248,0.08); text-decoration: none; }
+    .btn-sheet:hover { border-color: #38bdf8; text-decoration: none; }
     .loading {
       text-align: center;
       color: #94a3b8;
@@ -123,7 +122,6 @@
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
       justify-content: center;
       align-items: center;
       z-index: 100;
@@ -174,11 +172,38 @@
       color: #64748b;
       font-size: 0.9rem;
     }
+    .qr-cell { text-align: center; }
+    .qr-cell img {
+      display: inline-block;
+      vertical-align: middle;
+    }
     @media (max-width: 640px) {
       body { padding: 1rem 0.5rem; }
       .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
       th, td { padding: 0.7rem 0.5rem; font-size: 0.8rem; }
       .url-cell { max-width: 120px; }
+    }
+    .toast {
+      display: none;
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: #fff;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      z-index: 200;
+    }
+    .toast.show {
+      display: block;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(1rem); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
   </style>
 </head>
@@ -275,7 +300,7 @@
           "<td><strong>" + item.code + "</strong></td>" +
           "<td class='url-cell'><a href='" + item.url + "' target='_blank' title='" + item.url + "'>" + item.url + "</a></td>" +
           "<td class='url-cell'><a href='" + shortUrl + "' target='_blank'>" + shortUrl + "</a></td>" +
-          "<td style='text-align:center'><img src='" + qrUrl + "' width='70' height='70' style='background:#fff;padding:3px;border-radius:4px;display:block;margin:0 auto'></td>" +
+          "<td class='qr-cell'><img src='" + qrUrl + "' width='70' height='70' style='background:#fff;padding:3px;border-radius:4px'></td>" +
           "<td>" +
           "<div class='actions'>" +
           "<button class='btn-small btn-qr' onclick='showQRForCode(\"" + item.code + "\")'>QR</button>" +
@@ -296,9 +321,16 @@
       document.getElementById("modal").classList.add("active");
     }
 
+    function showToast() {
+      var t = document.getElementById("toast");
+      t.className = "toast show";
+      setTimeout(function() { t.className = "toast"; }, 1500);
+    }
+
     function copyShortUrl(code) {
       var shortUrl = BASE_URL + code;
       navigator.clipboard.writeText(shortUrl);
+      showToast();
     }
 
     function copyUrl() {
