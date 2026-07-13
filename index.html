@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>頁面跳轉中...</title>
+  <title>QR Code 轉址管理</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -11,113 +11,237 @@
       background: #0f172a;
       color: #e2e8f0;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .container {
-      text-align: center;
       padding: 2rem;
     }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid #334155;
-      border-top-color: #38bdf8;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 1rem;
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 2rem; color: #38bdf8; }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .input-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
     }
-    .message {
-      color: #94a3b8;
-      font-size: 0.9rem;
+    input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 1rem;
     }
-    .error {
-      color: #f87171;
+    input:focus { outline: none; border-color: #38bdf8; }
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background: #7dd3fc; }
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .btn-secondary:hover { background: #475569; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #334155;
+    }
+    th { color: #38bdf8; }
+    .qr-cell { text-align: center; }
+    .qr-cell img {
+      width: 100px;
+      height: 100px;
+      background: white;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    .url-cell {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .actions { display: flex; gap: 0.5rem; }
+    .loading { text-align: center; color: #94a3b8; padding: 2rem; }
+    .modal {
       display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #1e293b;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .modal-content img {
+      width: 200px;
+      height: 200px;
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+    .modal-content p { margin: 0.5rem 0; color: #94a3b8; }
+    .short-url {
+      font-size: 1.2rem;
+      color: #38bdf8;
+      word-break: break-all;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="spinner" id="spinner"></div>
-    <p class="message" id="message">頁面跳轉中，請稍候...</p>
-    <p class="error" id="error"></p>
+    <h1>QR Code 轉址管理</h1>
+
+    <div class="card">
+      <div class="input-group">
+        <input type="text" id="shortCode" placeholder="短碼（如 math101）">
+        <input type="url" id="targetUrl" placeholder="目標網址（如 https://...）">
+        <button onclick="showQR()">產生 QR Code</button>
+      </div>
+      <p style="color: #64748b; font-size: 0.875rem;">
+        提示：在 Sheets 裡設定好短碼和目標網址後，這裡會自動讀取並顯示 QR Code
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">已設定的短碼</h2>
+      <div id="loading" class="loading">載入中...</div>
+      <table id="table" style="display: none;">
+        <thead>
+          <tr>
+            <th>短碼</th>
+            <th>目標網址</th>
+            <th class="qr-cell">QR Code</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle"></h2>
+      <img id="modalQR" src="">
+      <p>掃描此 QR Code 或複製以下網址：</p>
+      <p class="short-url" id="modalUrl"></p>
+      <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center;">
+        <button onclick="copyUrl()">複製網址</button>
+        <button class="btn-secondary" onclick="closeModal()">關閉</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // ===== 在這裡填入你的 GAS Web App 網址 =====
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzpnzQFfIvt2z9y-ibVcinHujiHBSH913QsK82OF3PSnOjcHtHR-36dGwiWFXoHPMmK/exec";
+    var SHEETS_ID = "1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4";
+    var BASE_URL = "https://sshorng.github.io/r/";
+    var allData = [];
 
-    // 從網址列取得短碼（支援 /r/math101 或 ?code=math101 格式）
-    function getCode() {
-      const path = window.location.pathname;
-      const match = path.match(/\/r\/([^\/]+)/);
-      if (match) return decodeURIComponent(match[1]);
-
-      const params = new URLSearchParams(window.location.search);
-      return params.get("code") || "";
+    function getQRUrl(url) {
+      return "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(url);
     }
 
-    // 顯示錯誤
-    function showError(msg) {
-      document.getElementById("spinner").style.display = "none";
-      document.getElementById("message").style.display = "none";
-      const errorEl = document.getElementById("error");
-      errorEl.textContent = msg;
-      errorEl.style.display = "block";
-    }
-
-    // 主程式
-    async function redirect() {
-      const code = getCode();
-
-      if (!code) {
-        showError("找不到短碼，請確認網址正確");
-        return;
-      }
-
-      if (!GAS_URL) {
-        showError("系統未設定，請聯繫管理員");
-        return;
-      }
-
+    async function loadData() {
       try {
-        // 呼叫 GAS API
-        const response = await fetch(`${GAS_URL}?action=getUrl&code=${encodeURIComponent(code)}`);
-        const html = await response.text();
+        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/gviz/tq?tqx=out:json&tq=SELECT%20A%2C%20B";
+        var response = await fetch(url);
+        var text = await response.text();
+        var json = JSON.parse(text.substring(47, text.length - 2));
+        var rows = json.table.rows;
 
-        // GAS 直接回傳跳轉 HTML，用 iframe 解析
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        const script = doc.querySelector("script");
-
-        if (script && script.textContent.includes("window.top.location.href")) {
-          // 提取 URL 並跳轉
-          const urlMatch = script.textContent.match(/window\.top\.location\.href="([^"]+)"/);
-          if (urlMatch) {
-            window.top.location.href = urlMatch[1];
-            return;
+        allData = [];
+        for (var i = 0; i < rows.length; i++) {
+          var shortCode = rows[i].c[0] ? String(rows[i].c[0].v) : "";
+          var targetUrl = rows[i].c[1] ? String(rows[i].c[1].v) : "";
+          if (shortCode) {
+            allData.push({ code: shortCode, url: targetUrl });
           }
         }
 
-        // 如果回傳 JSON 錯誤
-        try {
-          const json = JSON.parse(html);
-          showError(json.error || "找不到對應的網址");
-        } catch {
-          showError("回應格式錯誤，請聯繫管理員");
-        }
+        renderTable();
       } catch (err) {
-        showError("連線失敗，請稍後再試");
+        document.getElementById("loading").textContent = "載入失敗，請確認 Sheets 已設為公開";
         console.error(err);
       }
     }
 
-    redirect();
+    function renderTable() {
+      var tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      allData.forEach(function(item) {
+        var shortUrl = BASE_URL + item.code;
+        var qrUrl = getQRUrl(shortUrl);
+        var row = document.createElement("tr");
+        row.innerHTML =
+          "<td>" + item.code + "</td>" +
+          "<td class='url-cell' title='" + item.url + "'>" + item.url + "</td>" +
+          "<td class='qr-cell'><img src='" + qrUrl + "' alt='QR Code'></td>" +
+          "<td class='actions'>" +
+          "<button onclick='showQRForCode(\"" + item.code + "\")'>放大</button>" +
+          "</td>";
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("table").style.display = "table";
+    }
+
+    function showQR() {
+      var code = document.getElementById("shortCode").value.trim();
+      var url = document.getElementById("targetUrl").value.trim();
+      if (!code) { alert("請輸入短碼"); return; }
+      if (!url) { alert("請輸入目標網址"); return; }
+
+      var shortUrl = BASE_URL + code;
+      document.getElementById("modalTitle").textContent = code;
+      document.getElementById("modalQR").src = getQRUrl(shortUrl);
+      document.getElementById("modalUrl").textContent = shortUrl;
+      document.getElementById("modal").classList.add("active");
+    }
+
+    function showQRForCode(code) {
+      var shortUrl = BASE_URL + code;
+      document.getElementById("modalTitle").textContent = code;
+      document.getElementById("modalQR").src = getQRUrl(shortUrl);
+      document.getElementById("modalUrl").textContent = shortUrl;
+      document.getElementById("modal").classList.add("active");
+    }
+
+    function copyUrl() {
+      var url = document.getElementById("modalUrl").textContent;
+      navigator.clipboard.writeText(url).then(function() {
+        alert("已複製！");
+      });
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.remove("active");
+    }
+
+    loadData();
   </script>
 </body>
 </html>
