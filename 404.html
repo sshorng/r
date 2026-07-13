@@ -35,6 +35,8 @@
   </div>
 
   <script>
+    var SHEETS_ID = "1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4";
+
     function getCode() {
       var path = window.location.pathname;
       var match = path.match(/\/r\/([^\/]+)/);
@@ -51,6 +53,31 @@
       errorEl.style.display = "block";
     }
 
+    function findInMapping(mapping, code) {
+      for (var i = 0; i < mapping.length; i++) {
+        if (mapping[i].code && mapping[i].code.toLowerCase() === code.toLowerCase()) {
+          return mapping[i].url;
+        }
+      }
+      return null;
+    }
+
+    async function fetchFromSheets() {
+      var ts = new Date().getTime();
+      var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/export?format=csv&gid=0&_=" + ts;
+      var response = await fetch(url);
+      var text = await response.text();
+      var lines = text.split("\n");
+      var mapping = [];
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(",");
+        var code = cols[0] ? cols[0].trim() : "";
+        var url = cols[1] ? cols[1].trim() : "";
+        if (code) mapping.push({ code: code, url: url });
+      }
+      return mapping;
+    }
+
     async function redirect() {
       var code = getCode();
       if (!code) { showError("找不到短碼，請確認網址正確"); return; }
@@ -58,14 +85,14 @@
       try {
         var response = await fetch("data.json");
         var mapping = await response.json();
+        var target = findInMapping(mapping, code);
+        if (target) { window.top.location.href = target; return; }
+      } catch(e) {}
 
-        for (var i = 0; i < mapping.length; i++) {
-          if (mapping[i].code.toLowerCase() === code.toLowerCase()) {
-            window.top.location.href = mapping[i].url;
-            return;
-          }
-        }
-
+      try {
+        var mapping = await fetchFromSheets();
+        var target = findInMapping(mapping, code);
+        if (target) { window.top.location.href = target; return; }
         showError("找不到短碼：" + code);
       } catch (err) {
         showError("連線失敗，請稍後再試");
