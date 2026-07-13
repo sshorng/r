@@ -35,10 +35,6 @@
   </div>
 
   <script>
-    var SHEETS_ID = "1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4";
-    var CACHE_KEY = "az_mapping";
-    var CACHE_TTL = 30 * 60 * 1000;
-
     function getCode() {
       var path = window.location.pathname;
       var match = path.match(/\/r\/([^\/]+)/);
@@ -55,64 +51,21 @@
       errorEl.style.display = "block";
     }
 
-    function getCache() {
-      try {
-        var raw = localStorage.getItem(CACHE_KEY);
-        if (!raw) return null;
-        var data = JSON.parse(raw);
-        if (Date.now() - data.time > CACHE_TTL) {
-          localStorage.removeItem(CACHE_KEY);
-          return null;
-        }
-        return data.mapping;
-      } catch(e) { return null; }
-    }
-
-    function setCache(mapping) {
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ time: Date.now(), mapping: mapping }));
-      } catch(e) {}
-    }
-
-    function findRedirect(mapping, code) {
-      for (var i = 0; i < mapping.length; i++) {
-        if (mapping[i].code.toLowerCase() === code.toLowerCase()) {
-          return mapping[i].url;
-        }
-      }
-      return null;
-    }
-
-    async function fetchMapping() {
-      var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/export?format=csv&gid=0";
-      var response = await fetch(url);
-      var text = await response.text();
-      var lines = text.split("\n");
-      var mapping = [];
-      for (var i = 1; i < lines.length; i++) {
-        var cols = lines[i].split(",");
-        var code = cols[0] ? cols[0].trim() : "";
-        var url = cols[1] ? cols[1].trim() : "";
-        if (code) mapping.push({ code: code, url: url });
-      }
-      setCache(mapping);
-      return mapping;
-    }
-
     async function redirect() {
       var code = getCode();
       if (!code) { showError("找不到短碼，請確認網址正確"); return; }
 
-      var cached = getCache();
-      if (cached) {
-        var target = findRedirect(cached, code);
-        if (target) { window.top.location.href = target; return; }
-      }
-
       try {
-        var mapping = await fetchMapping();
-        var target = findRedirect(mapping, code);
-        if (target) { window.top.location.href = target; return; }
+        var response = await fetch("data.json");
+        var mapping = await response.json();
+
+        for (var i = 0; i < mapping.length; i++) {
+          if (mapping[i].code.toLowerCase() === code.toLowerCase()) {
+            window.top.location.href = mapping[i].url;
+            return;
+          }
+        }
+
         showError("找不到短碼：" + code);
       } catch (err) {
         showError("連線失敗，請稍後再試");
