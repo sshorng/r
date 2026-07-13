@@ -154,7 +154,8 @@
 
     async function loadData() {
       try {
-        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/gviz/tq?tqx=out:json&tq=SELECT%20A%2C%20B";
+        var timestamp = new Date().getTime();
+        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/gviz/tq?tqx=out:json&tq=SELECT%20A%2C%20B&_=" + timestamp;
         var response = await fetch(url);
         var text = await response.text();
         var json = JSON.parse(text.substring(47, text.length - 2));
