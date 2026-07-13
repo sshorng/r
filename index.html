@@ -172,11 +172,7 @@
       color: #64748b;
       font-size: 0.9rem;
     }
-    .qr-cell { text-align: center !important; }
-    .qr-cell img {
-      display: inline-block;
-      vertical-align: middle;
-    }
+    .qr-cell img { vertical-align: middle; }
     @media (max-width: 640px) {
       body { padding: 1rem 0.5rem; }
       .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
@@ -300,7 +296,7 @@
           "<td><strong>" + item.code + "</strong></td>" +
           "<td class='url-cell'><a href='" + item.url + "' target='_blank' title='" + item.url + "'>" + item.url + "</a></td>" +
           "<td class='url-cell'><a href='" + shortUrl + "' target='_blank'>" + shortUrl + "</a></td>" +
-          "<td class='qr-cell'><img src='" + qrUrl + "' width='70' height='70' style='background:#fff;padding:3px;border-radius:4px'></td>" +
+          "<td><img src='" + qrUrl + "' width='70' height='70' style='background:#fff;padding:3px;border-radius:4px'></td>" +
           "<td>" +
           "<div class='actions'>" +
           "<button class='btn-small btn-qr' onclick='showQRForCode(\"" + item.code + "\")'>QR</button>" +
@@ -336,6 +332,7 @@
     function copyUrl() {
       var url = document.getElementById("modalUrl").textContent;
       navigator.clipboard.writeText(url);
+      showToast();
     }
 
     function closeModal() {
