@@ -152,24 +152,27 @@
       return "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(url);
     }
 
+    function parseCSV(text) {
+      var lines = text.split("\n");
+      var result = [];
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(",");
+        var code = cols[0] ? cols[0].trim() : "";
+        var url = cols[1] ? cols[1].trim() : "";
+        if (code) {
+          result.push({ code: code, url: url });
+        }
+      }
+      return result;
+    }
+
     async function loadData() {
       try {
         var timestamp = new Date().getTime();
-        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/gviz/tq?tqx=out:json&tq=SELECT%20A%2C%20B&_=" + timestamp;
+        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/export?format=csv&gid=0&_=" + timestamp;
         var response = await fetch(url);
         var text = await response.text();
-        var json = JSON.parse(text.substring(47, text.length - 2));
-        var rows = json.table.rows;
-
-        allData = [];
-        for (var i = 0; i < rows.length; i++) {
-          var shortCode = rows[i].c[0] ? String(rows[i].c[0].v) : "";
-          var targetUrl = rows[i].c[1] ? String(rows[i].c[1].v) : "";
-          if (shortCode) {
-            allData.push({ code: shortCode, url: targetUrl });
-          }
-        }
-
+        allData = parseCSV(text);
         renderTable();
       } catch (err) {
         document.getElementById("loading").textContent = "載入失敗，請確認 Sheets 已設為公開";
