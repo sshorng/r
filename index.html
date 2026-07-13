@@ -207,9 +207,12 @@
   <div class="container">
     <div class="header">
       <h1><span>⇢</span> 阿墨轉址</h1>
-      <a href="https://docs.google.com/spreadsheets/d/1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4/edit" target="_blank" class="btn-sheet">
-        開啟 Google Sheets
-      </a>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <button class="btn-small btn-cache" onclick="clearCache()" style="padding:0.5rem 0.8rem;font-size:0.8rem;border:1px solid #2d3a50;border-radius:10px;background:#1e293b;color:#94a3b8;cursor:pointer">清除快取</button>
+        <a href="https://docs.google.com/spreadsheets/d/1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4/edit" target="_blank" class="btn-sheet">
+          開啟 Google Sheets
+        </a>
+      </div>
     </div>
 
     <div class="card">
@@ -337,6 +340,16 @@
 
     function closeModal() {
       document.getElementById("modal").classList.remove("active");
+    }
+
+    function clearCache() {
+      localStorage.removeItem("az_mapping");
+      loadData();
+      document.getElementById("toast").textContent = "快取已清除";
+      showToast();
+      setTimeout(function() {
+        document.getElementById("toast").textContent = "已複製";
+      }, 2000);
     }
 
     loadData();
