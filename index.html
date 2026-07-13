@@ -200,10 +200,11 @@
           "<td class='url-cell'><a href='" + item.url + "' target='_blank' title='" + item.url + "'>" + item.url + "</a></td>" +
           "<td class='url-cell'><a href='" + shortUrl + "' target='_blank'>" + shortUrl + "</a></td>" +
           "<td style='text-align:center'><img src='" + qrUrl + "' width='80' height='80' style='background:#fff;padding:4px;border-radius:4px'></td>" +
-          "<td class='actions'>" +
+          "<td>" +
+          "<div class='actions'>" +
           "<button class='btn-small btn-qr' onclick='showQRForCode(\"" + item.code + "\")'>放大</button>" +
           "<button class='btn-small btn-copy' onclick='copyShortUrl(\"" + item.code + "\")'>複製</button>" +
-          "</td>";
+          "</div></td>";
         tbody.appendChild(row);
       });
 
