@@ -61,15 +61,16 @@
       }
 
       try {
-        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/gviz/tq?tqx=out:json&tq=SELECT%20A%2C%20B";
+        var timestamp = new Date().getTime();
+        var url = "https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/export?format=csv&gid=0&_=" + timestamp;
         var response = await fetch(url);
         var text = await response.text();
-        var json = JSON.parse(text.substring(47, text.length - 2));
-        var rows = json.table.rows;
+        var lines = text.split("\n");
 
-        for (var i = 0; i < rows.length; i++) {
-          var shortCode = rows[i].c[0] ? String(rows[i].c[0].v) : "";
-          var targetUrl = rows[i].c[1] ? String(rows[i].c[1].v) : "";
+        for (var i = 1; i < lines.length; i++) {
+          var cols = lines[i].split(",");
+          var shortCode = cols[0] ? cols[0].trim() : "";
+          var targetUrl = cols[1] ? cols[1].trim() : "";
           if (shortCode && shortCode.toLowerCase() === code.toLowerCase()) {
             window.top.location.href = targetUrl;
             return;
