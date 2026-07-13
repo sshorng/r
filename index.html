@@ -208,7 +208,7 @@
     <div class="header">
       <h1><span>⇢</span> 阿墨轉址</h1>
       <div style="display:flex;gap:0.5rem;align-items:center">
-        <button class="btn-small btn-cache" onclick="clearCache()" style="padding:0.5rem 0.8rem;font-size:0.8rem;border:1px solid #2d3a50;border-radius:10px;background:#1e293b;color:#94a3b8;cursor:pointer">重新整理</button>
+        <button class="btn-small btn-cache" onclick="refreshFromSheets()" style="padding:0.5rem 0.8rem;font-size:0.8rem;border:1px solid #2d3a50;border-radius:10px;background:#1e293b;color:#94a3b8;cursor:pointer">即時同步</button>
         <a href="https://docs.google.com/spreadsheets/d/1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4/edit" target="_blank" class="btn-sheet">
           開啟 Google Sheets
         </a>
@@ -249,10 +249,23 @@
 
   <script>
     var BASE_URL = "https://sshorng.github.io/r/";
+    var SHEETS_ID = "1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4";
     var allData = [];
 
     function getQRUrl(url) {
       return "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(url);
+    }
+
+    function parseCSV(text) {
+      var lines = text.split("\n");
+      var result = [];
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(",");
+        var code = cols[0] ? cols[0].trim() : "";
+        var url = cols[1] ? cols[1].trim() : "";
+        if (code) result.push({ code: code, url: url });
+      }
+      return result;
     }
 
     async function loadData() {
@@ -261,7 +274,25 @@
         allData = await response.json();
         renderTable();
       } catch (err) {
-        document.getElementById("loading").textContent = "載入失敗，請確認 data.json 存在";
+        document.getElementById("loading").textContent = "載入失敗";
+      }
+    }
+
+    async function refreshFromSheets() {
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("loading").textContent = "正在同步 ...";
+      document.getElementById("table").style.display = "none";
+      try {
+        var ts = new Date().getTime();
+        var response = await fetch("https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/export?format=csv&gid=0&_=" + ts);
+        var text = await response.text();
+        allData = parseCSV(text);
+        renderTable();
+        document.getElementById("toast").textContent = "已同步最新資料";
+        showToast();
+        setTimeout(function() { document.getElementById("toast").textContent = "已複製"; }, 2000);
+      } catch (err) {
+        document.getElementById("loading").textContent = "同步失敗";
       }
     }
 
@@ -322,15 +353,6 @@
 
     function closeModal() {
       document.getElementById("modal").classList.remove("active");
-    }
-
-    function clearCache() {
-      loadData();
-      document.getElementById("toast").textContent = "已重新整理";
-      showToast();
-      setTimeout(function() {
-        document.getElementById("toast").textContent = "已複製";
-      }, 2000);
     }
 
     loadData();
