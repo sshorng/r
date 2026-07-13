@@ -40,16 +40,12 @@
       padding: 1rem 1.5rem;
       background: rgba(255,255,255,0.02);
       border-bottom: 1px solid #2d3a50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .card-header p {
-      color: #94a3b8;
-      font-size: 0.85rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 0;
-    }
+    .card-header p { color: #94a3b8; font-size: 0.85rem; }
+    table { width: 100%; border-collapse: collapse; margin: 0; }
     th, td {
       padding: 0.9rem 1rem;
       text-align: left;
@@ -63,14 +59,8 @@
       letter-spacing: 0.3px;
       background: rgba(56,189,248,0.03);
     }
-    .url-cell {
-      max-width: 220px;
-      word-break: break-all;
-    }
-    a {
-      color: #7dd3fc;
-      text-decoration: none;
-    }
+    .url-cell { max-width: 220px; word-break: break-all; }
+    a { color: #7dd3fc; text-decoration: none; }
     a:hover { color: #38bdf8; }
     .actions {
       display: flex;
@@ -88,16 +78,21 @@
       font-weight: 500;
       line-height: 1.4;
     }
-    .btn-qr {
-      background: #38bdf8;
-      color: #0f172a;
-    }
+    .btn-qr { background: #38bdf8; color: #0f172a; }
     .btn-qr:hover { background: #7dd3fc; }
-    .btn-copy {
-      background: #334155;
-      color: #cbd5e1;
-    }
+    .btn-copy { background: #334155; color: #cbd5e1; }
     .btn-copy:hover { background: #475569; color: #f1f5f9; }
+    .btn-outline {
+      background: #1e293b;
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 0.5rem 0.8rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      border: 1px solid #2d3a50;
+      cursor: pointer;
+    }
+    .btn-outline:hover { border-color: #38bdf8; }
     .btn-sheet {
       background: #1e293b;
       color: #38bdf8;
@@ -109,12 +104,7 @@
       border: 1px solid #2d3a50;
     }
     .btn-sheet:hover { border-color: #38bdf8; text-decoration: none; }
-    .loading {
-      text-align: center;
-      color: #94a3b8;
-      padding: 3rem 2rem;
-      font-size: 0.9rem;
-    }
+    .loading { text-align: center; color: #94a3b8; padding: 3rem 2rem; font-size: 0.9rem; }
     .modal {
       display: none;
       position: fixed;
@@ -135,10 +125,7 @@
       width: 100%;
       box-shadow: 0 16px 48px rgba(0,0,0,0.4);
     }
-    .modal-content h2 {
-      color: #f1f5f9;
-      margin-bottom: 0.5rem;
-    }
+    .modal-content h2 { color: #f1f5f9; margin-bottom: 0.5rem; }
     .modal-content img {
       width: 200px;
       height: 200px;
@@ -158,25 +145,8 @@
       margin: 0.5rem 0;
       border: 1px solid #2d3a50;
     }
-    .modal-actions {
-      margin-top: 1rem;
-      display: flex;
-      gap: 0.8rem;
-      justify-content: center;
-    }
-    .empty-msg {
-      text-align: center;
-      padding: 2rem;
-      color: #64748b;
-      font-size: 0.9rem;
-    }
-    .qr-cell img { vertical-align: middle; }
-    @media (max-width: 640px) {
-      body { padding: 1rem 0.5rem; }
-      .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
-      th, td { padding: 0.7rem 0.5rem; font-size: 0.8rem; }
-      .url-cell { max-width: 120px; word-break: break-all; }
-    }
+    .modal-actions { margin-top: 1rem; display: flex; gap: 0.8rem; justify-content: center; }
+    .empty-msg { text-align: center; padding: 2rem; color: #64748b; font-size: 0.9rem; }
     .toast {
       display: none;
       position: fixed;
@@ -199,6 +169,12 @@
       from { opacity: 0; transform: translateX(-50%) translateY(1rem); }
       to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
+    @media (max-width: 640px) {
+      body { padding: 1rem 0.5rem; }
+      .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+      th, td { padding: 0.7rem 0.5rem; font-size: 0.8rem; }
+      .url-cell { max-width: 120px; word-break: break-all; }
+    }
   </style>
 </head>
 <body>
@@ -206,7 +182,7 @@
     <div class="header">
       <h1><span>⇢</span> 阿墨轉址</h1>
       <div style="display:flex;gap:0.5rem;align-items:center">
-        <button class="btn-small btn-cache" onclick="refreshFromSheets()" style="padding:0.5rem 0.8rem;font-size:0.8rem;border:1px solid #2d3a50;border-radius:10px;background:#1e293b;color:#94a3b8;cursor:pointer">即時同步</button>
+        <button class="btn-outline" onclick="loadData()">重新整理</button>
         <a href="https://docs.google.com/spreadsheets/d/1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4/edit" target="_blank" class="btn-sheet">
           開啟 Google Sheets
         </a>
@@ -215,7 +191,7 @@
 
     <div class="card">
       <div class="card-header">
-        <p>在 Google Sheets 中新增短碼，每 5 分鐘自動同步</p>
+        <p>在 Google Sheets 中新增短碼，重新整理後即可顯示</p>
       </div>
       <div id="loading" class="loading">載入中 ...</div>
       <table id="table" style="display: none;">
@@ -245,53 +221,45 @@
     </div>
   </div>
 
+  <div class="toast" id="toast">已複製</div>
+
   <script>
-    var BASE_URL = "https://sshorng.github.io/r/";
     var SHEETS_ID = "1OHdNUk4C9CvsKV1rfsrbeSFBplpEI5Ga8BiFOWPGit4";
+    var BASE_URL = "https://sshorng.github.io/r/";
     var allData = [];
 
     function getQRUrl(url) {
       return "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(url);
     }
 
-    function parseCSV(text) {
-      var lines = text.split("\n");
-      var result = [];
-      for (var i = 1; i < lines.length; i++) {
-        var cols = lines[i].split(",");
-        var code = cols[0] ? cols[0].trim() : "";
-        var url = cols[1] ? cols[1].trim() : "";
-        if (code) result.push({ code: code, url: url });
-      }
-      return result;
+    function showToast() {
+      var t = document.getElementById("toast");
+      t.className = "toast show";
+      setTimeout(function() { t.className = "toast"; }, 1500);
     }
 
     async function loadData() {
-      try {
-        var response = await fetch("data.json");
-        allData = await response.json();
-        if (allData.length === 0) throw "empty";
-        renderTable();
-      } catch (err) {
-        refreshFromSheets();
-      }
-    }
+      var loading = document.getElementById("loading");
+      var table = document.getElementById("table");
+      loading.style.display = "block";
+      loading.textContent = "載入中 ...";
+      table.style.display = "none";
 
-    async function refreshFromSheets() {
-      document.getElementById("loading").style.display = "block";
-      document.getElementById("loading").textContent = "正在同步 ...";
-      document.getElementById("table").style.display = "none";
       try {
         var ts = new Date().getTime();
         var response = await fetch("https://docs.google.com/spreadsheets/d/" + SHEETS_ID + "/export?format=csv&gid=0&_=" + ts);
         var text = await response.text();
-        allData = parseCSV(text);
+        var lines = text.split("\n");
+        allData = [];
+        for (var i = 1; i < lines.length; i++) {
+          var cols = lines[i].split(",");
+          var code = cols[0] ? cols[0].trim() : "";
+          var url = cols[1] ? cols[1].trim() : "";
+          if (code) allData.push({ code: code, url: url });
+        }
         renderTable();
-        document.getElementById("toast").textContent = "已同步最新資料";
-        showToast();
-        setTimeout(function() { document.getElementById("toast").textContent = "已複製"; }, 2000);
       } catch (err) {
-        document.getElementById("loading").textContent = "同步失敗";
+        loading.textContent = "載入失敗";
       }
     }
 
@@ -332,12 +300,6 @@
       document.getElementById("modal").classList.add("active");
     }
 
-    function showToast() {
-      var t = document.getElementById("toast");
-      t.className = "toast show";
-      setTimeout(function() { t.className = "toast"; }, 1500);
-    }
-
     function copyShortUrl(code) {
       var shortUrl = BASE_URL + code;
       navigator.clipboard.writeText(shortUrl);
@@ -356,6 +318,5 @@
 
     loadData();
   </script>
-  <div class="toast" id="toast">已複製</div>
 </body>
 </html>
